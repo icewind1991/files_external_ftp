@@ -1,6 +1,6 @@
 <?php
 /**
- * @author Robin Appelman <icewind@owncloud.com>
+ * @author Robin Appelman <robin@icewind.nl>
  *
  * @copyright Copyright (c) 2015, ownCloud, Inc.
  * @license AGPL-3.0
@@ -18,11 +18,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  *
  */
-namespace OCA\Files_External_FTP;
+namespace OCA\Files_External_FTP\Storage;
 
 use League\Flysystem\Adapter\Ftp as FtpAdapter;
 use League\Flysystem\AdapterInterface;
-use League\Flysystem\NotSupportedException;
 
 class Adapter extends FtpAdapter {
 	/**

@@ -9,8 +9,10 @@
 	<types>
 		<filesystem/>
 	</types>
+	<namespace>Files_External_FTP</namespace>
 
 	<dependencies>
-		<owncloud min-version="9.1" max-version="9.2"/>
+		<owncloud min-version="9.1" max-version="9.1"/>
+		<nextcloud min-version="10" max-version="12"/>
 	</dependencies>
 </info>
