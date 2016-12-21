@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <phpunit bootstrap="bootstrap.php"
 		 strict="true"
-		 verbose="true"
 		 timeoutForSmallTests="900"
 		 timeoutForMediumTests="900"
 		 timeoutForLargeTests="900"
 		>
-	<testsuite name='ownCloud - file external ftp App Tests'>
+	<testsuite name='Nextcloud - file external ftp App Tests'>
 		<directory suffix='.php'>.</directory>
 	</testsuite>
 	<!-- filters for code coverage -->

@@ -28,15 +28,22 @@ namespace Test\Files_External_FTP;
 
 use Test\Files\Storage\Storage;
 
-class Ftp extends Storage {
+if (!\OC_App::isAppLoaded('files_external_ftp')) {
+	\OC_App::loadApp('files_external_ftp');
+}
+
+class FTP extends Storage {
 	private $config;
+
+	/** @var \OCA\Files_External_FTP\Storage\FTP */
+	protected $instance;
 
 	protected function setUp() {
 		parent::setUp();
 
-		$this->config = json_decode(file_get_contents('./config.json'), true);
+		$this->config = json_decode(file_get_contents(__DIR__ . '/config.json'), true);
 		$this->config['root'] = $this->getUniqueID();
-		$this->instance = new \OCA\Files_External_FTP\FTP($this->config);
+		$this->instance = new \OCA\Files_External_FTP\Storage\FTP($this->config);
 		$this->instance->mkdir('');
 	}
 
