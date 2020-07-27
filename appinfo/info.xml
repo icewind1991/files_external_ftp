@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <info>
 	<id>files_external_ftp</id>
-	<name>FTP storage support</name>
-	<description>FTP backend for files_external</description>
+	<name>Flysystem FTP storage backend</name>
+	<description>Alternative FTP backend for files_external</description>
 	<licence>AGPL</licence>
 	<author>Robin Appelman</author>
 	<version>0.1.0</version>
@@ -12,7 +12,6 @@
 	<namespace>Files_External_FTP</namespace>
 
 	<dependencies>
-		<owncloud min-version="9.1" max-version="9.1"/>
-		<nextcloud min-version="10" max-version="12"/>
+		<nextcloud min-version="17" max-version="20"/>
 	</dependencies>
 </info>

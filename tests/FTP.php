@@ -32,13 +32,16 @@ if (!\OC_App::isAppLoaded('files_external_ftp')) {
 	\OC_App::loadApp('files_external_ftp');
 }
 
+/**
+ * @group DB
+ */
 class FTP extends Storage {
 	private $config;
 
 	/** @var \OCA\Files_External_FTP\Storage\FTP */
 	protected $instance;
 
-	protected function setUp() {
+	protected function setUp(): void {
 		parent::setUp();
 
 		$this->config = json_decode(file_get_contents(__DIR__ . '/config.json'), true);
@@ -47,7 +50,7 @@ class FTP extends Storage {
 		$this->instance->mkdir('');
 	}
 
-	protected function tearDown() {
+	protected function tearDown(): void {
 		if ($this->instance) {
 			$this->instance->disconnect();
 		}

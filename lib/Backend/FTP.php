@@ -28,12 +28,12 @@ use OCA\Files_External\Lib\LegacyDependencyCheckPolyfill;
 use OCA\Files_External\Lib\Auth\Password\Password;
 
 class FTP extends Backend {
-
 	use LegacyDependencyCheckPolyfill;
 
 	public function __construct(IL10N $l, Password $legacyAuth) {
 		$this
-			->setIdentifier('ftp_flysystem')
+			->setIdentifier('ftp')
+			->addIdentifierAlias('\OC\Files\Storage\FTP')
 			->setStorageClass(\OCA\Files_External_FTP\Storage\FTP::class)
 			->setText($l->t('FTP (Flysystem)'))
 			->addParameters([

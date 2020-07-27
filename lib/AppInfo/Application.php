@@ -21,6 +21,7 @@
 
 namespace OCA\Files_External_FTP\AppInfo;
 
+use OCA\Files_External\Service\BackendService;
 use OCA\Files_External_FTP\Backend\FTP;
 use OCP\AppFramework\App;
 use OCA\Files_External\Lib\Config\IBackendProvider;
@@ -38,8 +39,13 @@ class Application extends App implements IBackendProvider {
 		/** @var \OC\Server $server */
 		$server = $this->getContainer()->getServer();
 
-		$backendService = $server->query('OCA\\Files_External\\Service\\BackendService');
-		$backendService->registerBackendProvider($this);
+		\OC::$server->getEventDispatcher()->addListener(
+			'OCA\\Files_External::loadAdditionalBackends',
+			function() use ($server) {
+				$backendService = $server->query(BackendService::class);
+				$backendService->registerBackendProvider($this);
+			}
+		);
 	}
 
 
