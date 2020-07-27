@@ -27,7 +27,7 @@ before_install:
   - mkdir /tmp/ftp
   - chmod 0777 /tmp/ftp
   - if [[ "$FTPD" == 'proftpd' ]]; then docker run --name ftp -d --net host -e FTP_USERNAME=test -e FTP_PASSWORD=test -v /tmp/ftp:/home/test hauptmedia/proftpd; fi
-  - if [[ "$FTPD" == 'vsftpd' ]]; then docker run --name ftp -d --net host -e FTP_USER=test -e FTP_PASS=test -v /tmp/ftp:/home/vsftpd/test fauria/vsftpd; fi
+  - if [[ "$FTPD" == 'vsftpd' ]]; then docker run --name ftp -d --net host -e FTP_USER=test -e FTP_PASS=test -e PASV_ADDRESS=127.0.0.1 -v /tmp/ftp:/home/vsftpd/test fauria/vsftpd; fi
 
   - cd ../
   - git clone https://github.com/nextcloud/server.git --recursive --depth 1 -b $CORE_BRANCH nextcloud
