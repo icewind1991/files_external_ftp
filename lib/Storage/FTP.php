@@ -142,10 +142,22 @@ class FTP extends Flysystem {
 	 * {@inheritdoc}
 	 */
 	public function stat($path) {
-		$info = $this->flysystem->getWithMetadata($this->buildPath($path), ['size']);
+		if (!$this->file_exists($path)) {
+			return false;
+		}
 		return [
 			'mtime' => $this->filemtime($path),
-			'size' => $info['size']
+			'size' => $this->flysystem->getSize($this->buildPath($path))
 		];
+	}
+
+	/**
+	 * {@inheritdoc}
+	 */
+	public function file_exists($path) {
+		if ($path === '' || $path === '.' || $path === '/') {
+			return true;
+		}
+		return $this->flysystem->has($this->buildPath($path));
 	}
 }
