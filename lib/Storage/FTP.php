@@ -138,6 +138,15 @@ class FTP extends Flysystem {
 		return $result;
 	}
 
+	public function test() {
+		try {
+			$this->flysystem->listContents($this->buildPath(''));
+			return true;
+		} catch (\Exception $e) {
+			return false;
+		}
+	}
+
 	/**
 	 * {@inheritdoc}
 	 */
