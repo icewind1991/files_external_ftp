@@ -226,14 +226,29 @@ class FTP extends Common {
 	}
 
 	public function mkdir($path) {
+		if ($this->is_dir($path)) {
+			return false;
+		}
 		return @ftp_mkdir($this->getConnection(), $this->buildPath($path)) !== false;
 	}
 
-	public function filetype($path) {
+	public function is_dir($path) {
 		if (@ftp_chdir($this->getConnection(), $this->buildPath($path)) === true) {
 			@ftp_chdir($this->getConnection(), '/');
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	public function is_file($path) {
+		return $this->filesize($path) !== false;
+	}
+
+	public function filetype($path) {
+		if ($this->is_dir($path)) {
 			return 'dir';
-		} else if ($this->filesize($path) !== false) {
+		} else if ($this->is_file($path)) {
 			return 'file';
 		} else {
 			return false;
