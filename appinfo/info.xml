@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <info>
 	<id>files_external_ftp</id>
-	<name>Flysystem FTP storage backend</name>
+	<name>Alternative FTP storage backend</name>
 	<description>Alternative FTP backend for files_external</description>
 	<licence>AGPL</licence>
 	<author>Robin Appelman</author>
@@ -12,6 +12,6 @@
 	<namespace>Files_External_FTP</namespace>
 
 	<dependencies>
-		<nextcloud min-version="17" max-version="20"/>
+		<nextcloud min-version="18" max-version="20"/>
 	</dependencies>
 </info>

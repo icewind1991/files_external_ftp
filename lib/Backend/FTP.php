@@ -35,7 +35,7 @@ class FTP extends Backend {
 			->setIdentifier('ftp')
 			->addIdentifierAlias('\OC\Files\Storage\FTP')
 			->setStorageClass(\OCA\Files_External_FTP\Storage\FTP::class)
-			->setText($l->t('FTP (Flysystem)'))
+			->setText($l->t('FTP (Alternative)'))
 			->addParameters([
 				(new DefinitionParameter('host', $l->t('Host'))),
 				(new DefinitionParameter('root', $l->t('Remote subfolder')))
