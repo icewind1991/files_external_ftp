@@ -323,7 +323,7 @@ class FTP extends Common {
 
 		foreach ($files as $file) {
 			$name = $file['name'];
-			if ($file['name'] === '.' || $file['name'] === '..') {
+			if ($file['type'] === 'cdir' || $file['type'] === 'pdir') {
 				continue;
 			}
 			$permissions = Constants::PERMISSION_ALL - Constants::PERMISSION_CREATE;
