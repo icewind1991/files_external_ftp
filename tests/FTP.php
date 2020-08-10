@@ -52,7 +52,7 @@ class FTP extends Storage {
 
 	protected function tearDown(): void {
 		if ($this->instance) {
-			$this->instance->disconnect();
+			$this->instance = null;
 		}
 		parent::tearDown();
 	}

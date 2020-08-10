@@ -21,13 +21,14 @@
 
 namespace OCA\Files_External_FTP\Storage;
 
-use Aws\Api\Parser\Exception\ParserException;
 use Icewind\Streams\CallbackWrapper;
 use Icewind\Streams\CountWrapper;
 use Icewind\Streams\IteratorDirectory;
+use OC\Files\Filesystem;
 use OC\Files\Storage\Common;
 use OC\Files\Storage\PolyFill\CopyDirectory;
 use OCP\Constants;
+use OCP\Files\FileInfo;
 use OCP\Files\StorageNotAvailableException;
 
 class FTP extends Common {
@@ -40,7 +41,7 @@ class FTP extends Common {
 	private $secure;
 	private $port;
 
-	/** @var resource */
+	/** @var FtpConnection */
 	private $connection;
 
 	public function __construct($params) {
@@ -61,27 +62,23 @@ class FTP extends Common {
 			$this->port = isset($params['port']) ? $params['port'] : 21;
 
 		} else {
-			throw new \Exception('Creating \OCA\Files_External_FTP\FTP storage failed');
+			throw new \Exception('Creating ' . self::class . ' storage failed');
 		}
 	}
 
 	protected function getConnection() {
 		if (!$this->connection) {
-			if ($this->secure) {
-				$this->connection = ftp_ssl_connect($this->host, $this->port);
-			} else {
-				$this->connection = ftp_connect($this->host, $this->port);
+			try {
+				$this->connection = new FtpConnection(
+					$this->secure,
+					$this->host,
+					$this->port,
+					$this->username,
+					$this->password
+				);
+			} catch (\Exception $e) {
+				throw new StorageNotAvailableException("Failed to create ftp connection", 0, $e);
 			}
-
-			if ($this->connection === false) {
-				throw new StorageNotAvailableException("Failed to connect to ftp");
-			}
-
-			if (ftp_login($this->connection, $this->username, $this->password) === false) {
-				throw new StorageNotAvailableException("Failed to connect to login to ftp");
-			}
-
-			ftp_pasv($this->getConnection(), true);
 		}
 
 		return $this->connection;
@@ -91,19 +88,8 @@ class FTP extends Common {
 		return 'ftp::' . $this->username . '@' . $this->host . '/' . $this->root;
 	}
 
-	public function disconnect() {
-		if ($this->connection) {
-			ftp_close($this->connection);
-		}
-		$this->connection = null;
-	}
-
-	public function __destruct() {
-		$this->disconnect();
-	}
-
 	protected function buildPath($path) {
-		return \OC\Files\Filesystem::normalizePath($this->root . '/' . $path);
+		return Filesystem::normalizePath($this->root . '/' . $path);
 	}
 
 	public static function checkDependencies() {
@@ -115,15 +101,18 @@ class FTP extends Common {
 	}
 
 	public function filemtime($path) {
-		$result = @ftp_mdtm($this->getConnection(), $this->buildPath($path));
+		$result = $this->getConnection()->mdtm($this->buildPath($path));
 
 		if ($result === -1) {
 			if ($this->is_dir($path)) {
-				$list = @ftp_mlsd($this->getConnection(), $this->buildPath($path));
-				if (!$list) {
-					return time();
-				} else {
+				$list = $this->getConnection()->mlsd($this->buildPath($path));
+				$currentDir = current(array_filter($list, function($item) {
+					return $item['type'] === 'cdir';
+				}));
+				if ($currentDir) {
 					return \DateTime::createFromFormat('YmdGis', $list[0]['modify'])->getTimestamp();
+				} else {
+					return time();
 				}
 			} else {
 				return false;
@@ -134,7 +123,7 @@ class FTP extends Common {
 	}
 
 	public function filesize($path) {
-		$result = @ftp_size($this->getConnection(), $this->buildPath($path));
+		$result = $this->getConnection()->size($this->buildPath($path));
 		if ($result === -1) {
 			return false;
 		} else {
@@ -144,7 +133,7 @@ class FTP extends Common {
 
 	public function rmdir($path) {
 		if ($this->is_dir($path)) {
-			$result = @ftp_rmdir($this->getConnection(), $this->buildPath($path));
+			$result = $this->getConnection()->rmdir($this->buildPath($path));
 			// recursive rmdir support depends on the ftp server
 			if ($result) {
 				return $result;
@@ -158,35 +147,28 @@ class FTP extends Common {
 		}
 	}
 
-	protected function listContents($path) {
-		return @ftp_mlsd($this->getConnection(), $this->buildPath($path));
-	}
-
 	/**
 	 * @param string $path
 	 * @return bool
 	 */
 	private function recursiveRmDir($path) {
-		$contents = @ftp_mlsd($this->getConnection(), $this->buildPath($path));
+		$contents = $this->getDirectoryContent($path);
 		$result = true;
 		foreach ($contents as $content) {
-			if ($content['name'] === '.' || $content['name'] === '..') {
-				continue;
-			}
-			if ($content['type'] === 'dir') {
+			if ($content['mimetype'] === FileInfo::MIMETYPE_FOLDER) {
 				$result = $result && $this->recursiveRmDir($path . '/' . $content['name']);
-			} else if ($content['type'] === 'file') {
-				$result = $result && @ftp_delete($this->getConnection(), $this->buildPath($path . '/' . $content['name']));
+			} else {
+				$result = $result && $this->getConnection()->delete($this->buildPath($path . '/' . $content['name']));
 			}
 		}
-		$result = $result && @ftp_rmdir($this->getConnection(), $this->buildPath($path));
+		$result = $result && $this->getConnection()->rmdir($this->buildPath($path));
 
 		return $result;
 	}
 
 	public function test() {
 		try {
-			return @ftp_systype($this->getConnection()) !== false;
+			return $this->getConnection()->systype() !== false;
 		} catch (\Exception $e) {
 			return false;
 		}
@@ -214,20 +196,14 @@ class FTP extends Common {
 			case 'dir':
 				return $this->rmdir($path);
 			case 'file':
-				return @ftp_delete($this->getConnection(), $this->buildPath($path));
+				return $this->getConnection()->delete($this->buildPath($path));
 			default:
 				return false;
 		}
 	}
 
 	public function opendir($path) {
-		$files = @ftp_nlist($this->getConnection(), $this->buildPath($path));
-		$files = array_map(function($name) {
-			if (strpos($name, '/') !== false) {
-				$name = basename($name);
-			}
-			return $name;
-		}, $files);
+		$files = $this->getConnection()->nlist($this->buildPath($path));
 		return IteratorDirectory::wrap($files);
 	}
 
@@ -235,12 +211,12 @@ class FTP extends Common {
 		if ($this->is_dir($path)) {
 			return false;
 		}
-		return @ftp_mkdir($this->getConnection(), $this->buildPath($path)) !== false;
+		return $this->getConnection()->mkdir($this->buildPath($path)) !== false;
 	}
 
 	public function is_dir($path) {
-		if (@ftp_chdir($this->getConnection(), $this->buildPath($path)) === true) {
-			@ftp_chdir($this->getConnection(), '/');
+		if ($this->getConnection()->chdir($this->buildPath($path)) === true) {
+			$this->getConnection()->chdir('/');
 			return true;
 		} else {
 			return false;
@@ -309,7 +285,7 @@ class FTP extends Common {
 			});
 		}
 
-		@ftp_fput($this->getConnection(), $this->buildPath($path), $stream, FTP_BINARY);
+		$this->getConnection()->fput($this->buildPath($path), $stream);
 		fclose($stream);
 
 		return $size;
@@ -317,7 +293,7 @@ class FTP extends Common {
 
 	public function readStream(string $path) {
 		$stream = fopen('php://temp', 'w+');
-		$result = @ftp_fget($this->getConnection(), $stream, $this->buildPath($path), FTP_BINARY);
+		$result = $this->getConnection()->fget($stream, $this->buildPath($path));
 		rewind($stream);
 
 		if (!$result) {
@@ -338,19 +314,15 @@ class FTP extends Common {
 
 	public function rename($path1, $path2) {
 		$this->unlink($path2);
-		return @ftp_rename($this->getConnection(), $this->buildPath($path1), $this->buildPath($path2));
+		return $this->getConnection()->rename($this->buildPath($path1), $this->buildPath($path2));
 	}
 
 	public function getDirectoryContent($directory): \Traversable {
-		$files = ftp_mlsd($this->getConnection(), $this->buildPath($directory));
+		$files = $this->getConnection()->mlsd($this->buildPath($directory));
 		$mimeTypeDetector = \OC::$server->getMimeTypeDetector();
 
 		foreach ($files as $file) {
 			$name = $file['name'];
-			if (strpos($name, '/') !== false) {
-				$name = basename($name);
-			}
-
 			if ($file['name'] === '.' || $file['name'] === '..') {
 				continue;
 			}
@@ -361,13 +333,15 @@ class FTP extends Common {
 			}
 
 			$data = [];
-			$data['mimetype'] = $isDir ? 'httpd/unix-directory' : $mimeTypeDetector->detectPath($name);
+			$data['mimetype'] = $isDir ? FileInfo::MIMETYPE_FOLDER : $mimeTypeDetector->detectPath($name);
 			$data['mtime'] = \DateTime::createFromFormat('YmdGis', $file['modify'])->getTimestamp();
 			if ($data['mtime'] === false) {
 				$data['mtime'] = time();
 			}
 			if ($isDir) {
 				$data['size'] = -1; //unknown
+			} else if (isset($file['size'])) {
+				$data['size'] = $file['size'];
 			} else {
 				$data['size'] = $this->filesize($directory . '/' . $name);
 			}
