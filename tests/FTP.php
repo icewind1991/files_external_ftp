@@ -57,6 +57,13 @@ class FTP extends Storage {
 		parent::tearDown();
 	}
 
+	public function directoryProvider() {
+		return array_filter(parent::directoryProvider(), function($item) {
+			return substr($item[0], -1) !== ' ';
+		});
+	}
+
+
 	/**
 	 * mtime for folders is only with a minute resolution
 	 */

@@ -1,5 +1,3 @@
-sudo: required
-
 services:
   - docker
 
@@ -14,7 +12,7 @@ env:
     - APP_NAME=files_external_ftp
     - DB=sqlite
   matrix:
-#    - FTPD=pure-ftpd
+    - FTPD=pure-ftpd
     - FTPD=proftpd
     - FTPD=vsftpd
 
@@ -28,6 +26,7 @@ before_install:
   - chmod 0777 /tmp/ftp
   - if [[ "$FTPD" == 'proftpd' ]]; then docker run --name ftp -d --net host -e FTP_USERNAME=test -e FTP_PASSWORD=test -v /tmp/ftp:/home/test hauptmedia/proftpd; fi
   - if [[ "$FTPD" == 'vsftpd' ]]; then docker run --name ftp -d --net host -e FTP_USER=test -e FTP_PASS=test -e PASV_ADDRESS=127.0.0.1 -v /tmp/ftp:/home/vsftpd/test fauria/vsftpd; fi
+  - if [[ "$FTPD" == 'pure-ftpd' ]]; then docker run --name ftp -d --net host -e "PUBLICHOST=localhost" -e FTP_USER_NAME=test -e FTP_USER_PASS=test -e FTP_USER_HOME=/home/test -v /tmp/ftp2:/home/test -v /tmp/ftp2:/etc/pure-ftpd/passwd stilliard/pure-ftpd; fi
 
   - cd ../
   - git clone https://github.com/nextcloud/server.git --recursive --depth 1 -b $CORE_BRANCH nextcloud
