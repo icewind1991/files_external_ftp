@@ -216,6 +216,12 @@ class FTP extends Common {
 
 	public function opendir($path) {
 		$files = @ftp_nlist($this->getConnection(), $this->buildPath($path));
+		$files = array_map(function($name) {
+			if (strpos($name, '/') !== false) {
+				$name = basename($name);
+			}
+			return $name;
+		}, $files);
 		return IteratorDirectory::wrap($files);
 	}
 
@@ -316,8 +322,14 @@ class FTP extends Common {
 
 	public function getDirectoryContent($directory): \Traversable {
 		$files = ftp_mlsd($this->getConnection(), $this->buildPath($directory));
+		$mimeTypeDetector = \OC::$server->getMimeTypeDetector();
 
 		foreach ($files as $file) {
+			$name = $file['name'];
+			if (strpos($name, '/') !== false) {
+				$name = basename($name);
+			}
+
 			if ($file['name'] === '.' || $file['name'] === '..') {
 				continue;
 			}
@@ -328,7 +340,7 @@ class FTP extends Common {
 			}
 
 			$data = [];
-			$data['mimetype'] = $isDir ? 'httpd/unix-directory' : \OC::$server->getMimeTypeDetector()->detectPath($file['name']);
+			$data['mimetype'] = $isDir ? 'httpd/unix-directory' : $mimeTypeDetector->detectPath($name);
 			$data['mtime'] = \DateTime::createFromFormat('YmdGis', $file['modify'])->getTimestamp();
 			if ($data['mtime'] === false) {
 				$data['mtime'] = time();
@@ -336,12 +348,12 @@ class FTP extends Common {
 			if ($isDir) {
 				$data['size'] = -1; //unknown
 			} else {
-				$data['size'] = $this->filesize($directory . '/' . $file['name']);
+				$data['size'] = $this->filesize($directory . '/' . $name);
 			}
 			$data['etag'] = uniqid();
 			$data['storage_mtime'] = $data['mtime'];
 			$data['permissions'] = $permissions;
-			$data['name'] = $file['name'];
+			$data['name'] = $name;
 
 			yield $data;
 		}
