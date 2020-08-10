@@ -143,12 +143,18 @@ class FTP extends Common {
 	}
 
 	public function rmdir($path) {
-		$result = @ftp_rmdir($this->getConnection(), $this->buildPath($path));
-		// recursive rmdir support depends on the ftp server
-		if ($result) {
-			return $result;
+		if ($this->is_dir($path)) {
+			$result = @ftp_rmdir($this->getConnection(), $this->buildPath($path));
+			// recursive rmdir support depends on the ftp server
+			if ($result) {
+				return $result;
+			} else {
+				return $this->recursiveRmDir($path);
+			}
+		} else if ($this->is_file($path)) {
+			return $this->unlink($path);
 		} else {
-			return $this->recursiveRmDir($path);
+			return false;
 		}
 	}
 
