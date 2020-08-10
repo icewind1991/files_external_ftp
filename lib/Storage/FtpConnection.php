@@ -57,11 +57,11 @@ class FtpConnection {
 	}
 
 	public function fput(string $path, $handle) {
-		return @ftp_fput($this->connection, $path, $handle);
+		return @ftp_fput($this->connection, $path, $handle, FTP_BINARY);
 	}
 
 	public function fget($handle, string $path) {
-		return @ftp_fget($this->connection, $handle, $path);
+		return @ftp_fget($this->connection, $handle, $path, FTP_BINARY);
 	}
 
 	public function mkdir(string $path) {
