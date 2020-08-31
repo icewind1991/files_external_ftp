@@ -89,7 +89,7 @@ class FTP extends Common {
 	}
 
 	protected function buildPath($path) {
-		return Filesystem::normalizePath($this->root . '/' . $path);
+		return rtrim($this->root . '/' . $path, '/');
 	}
 
 	public static function checkDependencies() {
