@@ -110,7 +110,11 @@ class FTP extends Common {
 					return $item['type'] === 'cdir';
 				}));
 				if ($currentDir) {
-					return \DateTime::createFromFormat('YmdGis', $list[0]['modify'])->getTimestamp();
+					$time = \DateTime::createFromFormat('YmdGis', $currentDir['modify'])->getTimestamp();
+					if ($time === false) {
+						throw new \Exception("Invalid date format for directory: $currentDir");
+					}
+					return $time;
 				} else {
 					return time();
 				}
