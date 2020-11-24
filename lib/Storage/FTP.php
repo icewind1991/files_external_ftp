@@ -106,6 +106,10 @@ class FTP extends Common {
 		if ($result === -1) {
 			if ($this->is_dir($path)) {
 				$list = $this->getConnection()->mlsd($this->buildPath($path));
+				if (!$list) {
+					\OC::$server->getLogger()->warning("Unable to get last modified date for ftp folder ($path), failed to list folder contents");
+					return time();
+				}
 				$currentDir = current(array_filter($list, function($item) {
 					return $item['type'] === 'cdir';
 				}));
@@ -116,6 +120,7 @@ class FTP extends Common {
 					}
 					return $time;
 				} else {
+					\OC::$server->getLogger()->warning("Unable to get last modified date for ftp folder ($path), folder contents doesn't include current folder");
 					return time();
 				}
 			} else {

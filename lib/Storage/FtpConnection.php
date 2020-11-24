@@ -109,7 +109,7 @@ class FtpConnection {
 	public function mlsd(string $path) {
 		$files = @ftp_mlsd($this->connection, $path);
 
-		if ($files) {
+		if ($files === false) {
 			return array_map(function ($file) {
 				if (strpos($file['name'], '/') !== false) {
 					$file['name'] = basename($file['name']);
