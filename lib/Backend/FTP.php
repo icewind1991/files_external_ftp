@@ -46,5 +46,4 @@ class FTP extends Backend {
 			->addAuthScheme(AuthMechanism::SCHEME_PASSWORD)
 			->setLegacyAuthMechanism($legacyAuth);
 	}
-
 }

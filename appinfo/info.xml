@@ -12,6 +12,6 @@
 	<namespace>Files_External_FTP</namespace>
 
 	<dependencies>
-		<nextcloud min-version="18" max-version="20"/>
+		<nextcloud min-version="18" max-version="21"/>
 	</dependencies>
 </info>

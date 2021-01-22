@@ -30,8 +30,7 @@ use OCA\Files_External\Lib\Config\IBackendProvider;
  * @package OCA\Files_External\AppInfo
  */
 class Application extends App implements IBackendProvider {
-
-	public function __construct(array $urlParams = array()) {
+	public function __construct(array $urlParams = []) {
 		parent::__construct('files_external_ftp', $urlParams);
 	}
 
@@ -41,7 +40,7 @@ class Application extends App implements IBackendProvider {
 
 		\OC::$server->getEventDispatcher()->addListener(
 			'OCA\\Files_External::loadAdditionalBackends',
-			function() use ($server) {
+			function () use ($server) {
 				$backendService = $server->query(BackendService::class);
 				$backendService->registerBackendProvider($this);
 			}

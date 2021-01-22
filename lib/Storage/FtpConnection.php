@@ -109,7 +109,7 @@ class FtpConnection {
 	public function mlsd(string $path) {
 		$files = @ftp_mlsd($this->connection, $path);
 
-		if ($files === false) {
+		if ($files !== false) {
 			return array_map(function ($file) {
 				if (strpos($file['name'], '/') !== false) {
 					$file['name'] = basename($file['name']);
@@ -149,15 +149,25 @@ class FtpConnection {
 		[$permissions, /* $number */, /* $owner */, /* $group */, $size, $month, $day, $time, $name] = explode(' ', $item, 9);
 		if ($name === '.') {
 			$type = 'cdir';
-		} else if ($name === '..') {
+		} elseif ($name === '..') {
 			$type = 'pdir';
 		} else {
 			$type = substr($permissions, 0, 1) === 'd' ? 'dir' : 'file';
 		}
 
-		$formattedDate = (new \DateTime())
-			->setTimestamp(strtotime("$month $day $time"))
-			->format('YmdGis');
+		$parsedDate = (new \DateTime())
+			->setTimestamp(strtotime("$month $day $time"));
+		$tomorrow = (new \DateTime())->add(new \DateInterval("P1D"));
+
+		// since the provided date doesn't include the year, we either set it to the correct year
+		// or when the date would otherwise be in the future (by more then 1 day to account for timezone errors)
+		// we use last year
+		if ($parsedDate > $tomorrow) {
+			$parsedDate = $parsedDate->sub(new \DateInterval("P1Y"));
+		}
+
+		$formattedDate = $parsedDate
+			->format('YmdHis');
 
 		return [
 			'type' => $type,
@@ -202,7 +212,7 @@ class FtpConnection {
 
 		if ($name === '.') {
 			$type = 'cdir';
-		} else if ($name === '..') {
+		} elseif ($name === '..') {
 			$type = 'pdir';
 		} else {
 			$type = ($size === '<DIR>') ? 'dir' : 'file';

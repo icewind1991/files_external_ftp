@@ -24,7 +24,6 @@ namespace OCA\Files_External_FTP\Storage;
 use Icewind\Streams\CallbackWrapper;
 use Icewind\Streams\CountWrapper;
 use Icewind\Streams\IteratorDirectory;
-use OC\Files\Filesystem;
 use OC\Files\Storage\Common;
 use OC\Files\Storage\PolyFill\CopyDirectory;
 use OCP\Constants;
@@ -60,7 +59,6 @@ class FTP extends Common {
 			}
 			$this->root = isset($params['root']) ? '/' . ltrim($params['root']) : '/';
 			$this->port = isset($params['port']) ? $params['port'] : 21;
-
 		} else {
 			throw new \Exception('Creating ' . self::class . ' storage failed');
 		}
@@ -110,15 +108,15 @@ class FTP extends Common {
 					\OC::$server->getLogger()->warning("Unable to get last modified date for ftp folder ($path), failed to list folder contents");
 					return time();
 				}
-				$currentDir = current(array_filter($list, function($item) {
+				$currentDir = current(array_filter($list, function ($item) {
 					return $item['type'] === 'cdir';
 				}));
 				if ($currentDir) {
-					$time = \DateTime::createFromFormat('YmdGis', $currentDir['modify'])->getTimestamp();
+					$time = \DateTime::createFromFormat('YmdHis', $currentDir['modify']);
 					if ($time === false) {
 						throw new \Exception("Invalid date format for directory: $currentDir");
 					}
-					return $time;
+					return $time->getTimestamp();
 				} else {
 					\OC::$server->getLogger()->warning("Unable to get last modified date for ftp folder ($path), folder contents doesn't include current folder");
 					return time();
@@ -149,7 +147,7 @@ class FTP extends Common {
 			} else {
 				return $this->recursiveRmDir($path);
 			}
-		} else if ($this->is_file($path)) {
+		} elseif ($this->is_file($path)) {
 			return $this->unlink($path);
 		} else {
 			return false;
@@ -224,6 +222,9 @@ class FTP extends Common {
 	}
 
 	public function is_dir($path) {
+		if ($path === "") {
+			return true;
+		}
 		if ($this->getConnection()->chdir($this->buildPath($path)) === true) {
 			$this->getConnection()->chdir('/');
 			return true;
@@ -239,7 +240,7 @@ class FTP extends Common {
 	public function filetype($path) {
 		if ($this->is_dir($path)) {
 			return 'dir';
-		} else if ($this->is_file($path)) {
+		} elseif ($this->is_file($path)) {
 			return 'file';
 		} else {
 			return false;
@@ -349,7 +350,7 @@ class FTP extends Common {
 			}
 			if ($isDir) {
 				$data['size'] = -1; //unknown
-			} else if (isset($file['size'])) {
+			} elseif (isset($file['size'])) {
 				$data['size'] = $file['size'];
 			} else {
 				$data['size'] = $this->filesize($directory . '/' . $name);

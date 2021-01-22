@@ -58,7 +58,7 @@ class FTP extends Storage {
 	}
 
 	public function directoryProvider() {
-		return array_filter(parent::directoryProvider(), function($item) {
+		return array_filter(parent::directoryProvider(), function ($item) {
 			return substr($item[0], -1) !== ' ';
 		});
 	}
