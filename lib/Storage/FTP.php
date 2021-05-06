@@ -64,7 +64,7 @@ class FTP extends Common {
 		}
 	}
 
-	protected function getConnection() {
+	protected function getConnection(): FtpConnection {
 		if (!$this->connection) {
 			try {
 				$this->connection = new FtpConnection(
@@ -158,7 +158,7 @@ class FTP extends Common {
 	 * @param string $path
 	 * @return bool
 	 */
-	private function recursiveRmDir($path) {
+	private function recursiveRmDir($path): bool {
 		$contents = $this->getDirectoryContent($path);
 		$result = true;
 		foreach ($contents as $content) {

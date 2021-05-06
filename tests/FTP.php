@@ -45,9 +45,13 @@ class FTP extends Storage {
 		parent::setUp();
 
 		$this->config = json_decode(file_get_contents(__DIR__ . '/config.json'), true);
-		$this->config['root'] = $this->getUniqueID();
+
+		$rootInstance = new \OCA\Files_External_FTP\Storage\FTP($this->config);
+		$root = $this->getUniqueID();
+		$this->assertTrue($rootInstance->mkdir($root));
+
+		$this->config['root'] = $root;
 		$this->instance = new \OCA\Files_External_FTP\Storage\FTP($this->config);
-		$this->instance->mkdir('');
 	}
 
 	protected function tearDown(): void {
