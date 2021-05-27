@@ -56,6 +56,11 @@ class FtpConnection {
 		$this->connection = null;
 	}
 
+	public function setUtf8Mode(): bool {
+		$response = ftp_raw($this->connection, "OPTS UTF8 ON");
+		return substr($response[0], 0, 3) === '200';
+	}
+
 	public function fput(string $path, $handle) {
 		return @ftp_fput($this->connection, $path, $handle, FTP_BINARY);
 	}

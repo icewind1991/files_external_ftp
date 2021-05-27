@@ -39,6 +39,7 @@ class FTP extends Common {
 	private $username;
 	private $secure;
 	private $port;
+	private $utf8Mode;
 
 	/** @var FtpConnection */
 	private $connection;
@@ -59,6 +60,7 @@ class FTP extends Common {
 			}
 			$this->root = isset($params['root']) ? '/' . ltrim($params['root']) : '/';
 			$this->port = isset($params['port']) ? $params['port'] : 21;
+			$this->utf8Mode = isset($params['utf8']) ? (bool)$params['utf8'] : false;
 		} else {
 			throw new \Exception('Creating ' . self::class . ' storage failed');
 		}
@@ -76,6 +78,11 @@ class FTP extends Common {
 				);
 			} catch (\Exception $e) {
 				throw new StorageNotAvailableException("Failed to create ftp connection", 0, $e);
+			}
+			if ($this->utf8Mode) {
+				if (!$this->connection->setUtf8Mode()) {
+					throw new StorageNotAvailableException("Could not set UTF-8 mode");
+				}
 			}
 		}
 

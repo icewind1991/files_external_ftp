@@ -14,8 +14,9 @@ jobs:
       matrix:
         php-versions: ['7.4', '8.0']
         ftpd: ['proftpd', 'vsftpd', 'pure-ftpd']
-        server-versions: ['stable19', 'stable20', 'stable21', 'master']
+        server-versions: ['stable20', 'stable21', 'master']
         databases: ['sqlite']
+        utf8: ['true', 'false']
         exclude:
           - php-versions: 8.0
             server-versions: stable19
@@ -78,6 +79,6 @@ jobs:
       - name: PHPUnit
         working-directory: apps/${{ env.APP_NAME }}/tests
         run: |
-          echo "{\"host\":\"localhost\",\"user\":\"test\",\"password\":\"test\"}" > config.json
+          echo "{\"host\":\"localhost\",\"user\":\"test\",\"password\":\"test\", \"utf8\": ${{ matrix.utf8 }}}" > config.json
           cat config.json
           ../vendor/phpunit/phpunit/phpunit -c phpunit.xml
