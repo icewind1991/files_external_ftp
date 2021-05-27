@@ -12,10 +12,15 @@ jobs:
       # do not stop on another job's failure
       fail-fast: false
       matrix:
-        php-versions: ['7.4']
+        php-versions: ['7.4', '8.0']
         ftpd: ['proftpd', 'vsftpd', 'pure-ftpd']
-        server-versions: ['master']
+        server-versions: ['stable19', 'stable20', 'stable21', 'master']
         databases: ['sqlite']
+        exclude:
+          - php-versions: 8.0
+            server-versions: stable19
+          - php-versions: 8.0
+            server-versions: stable20
 
     name: php${{ matrix.php-versions }}-${{ matrix.ftpd }}-${{ matrix.databases }}-${{ matrix.server-versions }}
 
